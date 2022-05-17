@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\RecipeController;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use Illuminate\Http\Request;
@@ -21,6 +22,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::post('/recipe', [RecipeController::class, 'store'])->name('recipe.store');
+});
 Route::get('/recipes', function(Request $request) {
 
     $recipes = Recipe::with([

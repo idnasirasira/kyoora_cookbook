@@ -9,6 +9,8 @@ class RecipeIngredient extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['recipe_id', 'measurement_unit_id', 'measurement_qty_id', 'ingredient_id'];
+
     public function recipe()
     {
         return $this->hasOne(Recipe::class);
