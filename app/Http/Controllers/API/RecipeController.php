@@ -19,7 +19,18 @@ class RecipeController extends Controller
      */
     public function index()
     {
-        //
+        $recipes = Recipe::with([
+            'recipe_ingredients' => function($q) {
+                $q->join('measurement_units', 'recipe_ingredients.measurement_unit_id','=','measurement_units.id');
+                $q->join('measurement_qties', 'recipe_ingredients.measurement_qty_id','=','measurement_qties.id');
+                $q->join('ingredients', 'recipe_ingredients.ingredient_id','=','ingredients.id');
+            }
+        ])->get();
+
+        return response()->json([
+            'msg' => 'All recipes',
+            'data' => $recipes,
+        ], 200);
     }
 
     /**
@@ -40,30 +51,40 @@ class RecipeController extends Controller
      */
     public function store(Request $request)
     {
-        $recipe = Recipe::create([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
-
-        foreach ($request->ingredients as $key => $value) {
-            $measurement_qty = MeasurementQty::firstOrCreate([
-                'qty_amount' => $value['qty']
+        try {
+            $recipe = Recipe::create([
+                'name' => $request->name,
+                'description' => $request->description,
             ]);
 
-            $measurement_unit = MeasurementUnit::firstOrCreate([
-                'measurement_description' => $value['unit']
-            ]);
+            foreach ($request->ingredients as $key => $value) {
+                $measurement_qty = MeasurementQty::firstOrCreate([
+                    'qty_amount' => $value['qty']
+                ]);
 
-            $ingredient = Ingredient::firstOrCreate([
-                'ingredient_name' => $value['ingredient']
-            ]);
+                $measurement_unit = MeasurementUnit::firstOrCreate([
+                    'measurement_description' => $value['unit']
+                ]);
 
-            RecipeIngredient::create([
-                'recipe_id' => $recipe->id,
-                'measurement_unit_id' => $measurement_unit->id,
-                'measurement_qty_id' => $measurement_qty->id,
-                'ingredient_id' => $ingredient->id,
-            ]);
+                $ingredient = Ingredient::firstOrCreate([
+                    'ingredient_name' => $value['ingredient']
+                ]);
+
+                RecipeIngredient::create([
+                    'recipe_id' => $recipe->id,
+                    'measurement_unit_id' => $measurement_unit->id,
+                    'measurement_qty_id' => $measurement_qty->id,
+                    'ingredient_id' => $ingredient->id,
+                ]);
+            }
+
+            return response()->json([
+                'msg' => __('Recipe created.'),
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'msg' => __('Ops, we fail to create your recipe. Please try again.'),
+            ], 500);
         }
     }
 
