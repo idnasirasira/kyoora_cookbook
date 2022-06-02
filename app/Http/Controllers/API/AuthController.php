@@ -17,9 +17,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:8',
         ]);
 
+        if(!User::checkEmailExists($request->email)){
+            return response()->json([
+                'msg' => __('Email is not registered.'),
+                'authenticated' => false,
+            ], 200);
+        }
+
         if(!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'msg' => __('Unauthenticated'),
+                'authenticated' => false,
             ], 401);
         }
 
@@ -31,6 +39,7 @@ class AuthController extends Controller
         return response()->json([
             'data' => $user,
             'access_token' => $token,
+            'authenticated' => true,
         ], 200);
     }
 
