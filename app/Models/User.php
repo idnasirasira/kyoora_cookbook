@@ -41,4 +41,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    static function checkEmailExists($email)
+    {
+        $instance = new static;
+        return !$instance->where('email', $email)->get()->isEmpty();
+    }
 }
