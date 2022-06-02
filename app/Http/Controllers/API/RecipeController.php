@@ -9,6 +9,7 @@ use App\Models\MeasurementUnit;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use Illuminate\Http\Request;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RecipeController extends Controller
 {
@@ -96,7 +97,18 @@ class RecipeController extends Controller
      */
     public function show($id)
     {
-        //
+        $recipes = Recipe::with([
+            'recipe_ingredients' => function($q) {
+                $q->join('measurement_units', 'recipe_ingredients.measurement_unit_id','=','measurement_units.id');
+                $q->join('measurement_qties', 'recipe_ingredients.measurement_qty_id','=','measurement_qties.id');
+                $q->join('ingredients', 'recipe_ingredients.ingredient_id','=','ingredients.id');
+            }
+        ])->where('id', $id)->get()->first();
+
+        return response()->json([
+            'msg' => "Recipes by ID#{$id}",
+            'data' => $recipes,
+        ], 200);
     }
 
     /**
@@ -130,6 +142,29 @@ class RecipeController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $recipe = Recipe::findOrFail($id);
+        } catch (\Throwable $th) {
+            if($th instanceof ModelNotFoundException) {
+                return response()->json([
+                    'msg' => __("Recipe with ID :ID not found.", ['ID' => $id]),
+                ], 404);
+            }
+        }
+
+        if(!$recipe->isEmpty()) {
+            RecipeIngredient::where('recipe_id', $id)->delete();
+
+            $recipe->delete();
+
+            return response()->json([
+                'msg' => __("Recipes :ID has been deleted", ['ID' => $id]),
+            ], 200);
+        } else {
+            return response()->json([
+                'msg' => __("Deleting recipe :ID failed.", ['ID' => $id]),
+            ], 200);
+        }
+
     }
 }

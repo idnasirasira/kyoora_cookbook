@@ -23,6 +23,8 @@ Route::post('/register', [AuthController::class, 'register'])->name('api.registe
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('api.logout');
 
 Route::middleware('auth:sanctum')->group(function(){
-    Route::get('/recipes', [RecipeController::class, 'index'])->name('recipe.index');
-    Route::post('/recipe', [RecipeController::class, 'store'])->name('recipe.store');
+    Route::get('/recipes', [RecipeController::class, 'index'])->name('api.recipe.index');
+    Route::get('/recipe/{id}', [RecipeController::class, 'show'])->name('api.recipe.show');
+    Route::delete('/recipe/{id}', [RecipeController::class, 'destroy'])->name('api.recipe.destroy');
+    Route::post('/recipe', [RecipeController::class, 'store'])->name('api.recipe.store');
 });
