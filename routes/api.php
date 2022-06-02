@@ -22,25 +22,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
 Route::middleware('auth:sanctum')->group(function(){
+    Route::get('/recipes', [RecipeController::class, 'index'])->name('recipe.index');
     Route::post('/recipe', [RecipeController::class, 'store'])->name('recipe.store');
-});
-Route::get('/recipes', function(Request $request) {
-
-    $recipes = Recipe::with([
-        'recipe_ingredients' => function($q) {
-            $q->join('measurement_units', 'recipe_ingredients.measurement_unit_id','=','measurement_units.id');
-            $q->join('measurement_qties', 'recipe_ingredients.measurement_qty_id','=','measurement_qties.id');
-            $q->join('ingredients', 'recipe_ingredients.ingredient_id','=','ingredients.id');
-        }
-    ])->get();
-
-    return response()->json([
-        'data' => $recipes,
-    ], 200);
-});
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
 });
